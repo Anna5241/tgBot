@@ -151,9 +151,9 @@ bot.on('callback_query', async msg =>{
     }
     if(Number(data) === chats[chatId]){
         await bot.sendMessage(chatId, `Поздравляем, вы выиграли, я загадал число ${chats[chatId]}`, againOptions)
-        return await bot.sendMessage(chatId, 'https://tgrm.su/img/stickers/chto_gde_kogda/1.webp')
+        return await bot.sendSticker(chatId, 'https://chpic.su/_data/stickers/h/Hamster_StickerMixUA/Hamster_StickerMixUA_001.webp')
     }else{
         await bot.sendMessage(chatId, `Поздравляем, вы проиграли, я загадал число ${chats[chatId]}`, againOptions)
-        return await bot.sendMessage(chatId, 'https://tgrm.su/img/stickers/shblokun/6.webp')
+        return await bot.sendSticker(chatId, 'https://chpic.su/_data/stickers/h/Hamster_StickerMixUA/Hamster_StickerMixUA_001.webp')
     }
 })
