@@ -8,6 +8,92 @@ const bot = new TelelegramApi(tocken, {polling: true})
 
 const chats = {}
 
+let gameBoard = [
+    [' . ', ' . ', ' . '],
+    [' . ', ' . ', ' . '],
+    [' . ', ' . ', ' . ']
+];
+
+let currentPlayer = 'X';
+
+function resetGame() {
+    gameBoard = [
+        [' . ', ' . ', ' . '],
+        [' . ', ' . ', ' . '],
+        [' . ', ' . ', ' . ']
+    ];
+    currentPlayer = 'X';
+}
+
+
+bot.on('message', (msg) => {
+    const chatId = msg.chat.id;
+    if (msg.text.includes('1') || msg.text.includes('2') || msg.text.includes('3')) {
+        const row = parseInt(msg.text.substring(0, 1)) - 1; 
+        const col = parseInt(msg.text.substring(1, 2)) - 1;
+        if (isValidMove(row, col)) {
+            gameBoard[row][col] = currentPlayer;
+            bot.sendMessage(chatId, getGameBoardAsString());
+            if (checkWin()) {
+                bot.sendMessage(chatId, `Игрок ${currentPlayer} победил!`);
+                resetGame();
+            } else if (checkDraw()) {
+                bot.sendMessage(chatId, 'Ничья!');
+                resetGame();
+            } else {
+                currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
+                bot.sendMessage(chatId, `Очередь ${currentPlayer}`);
+            }
+        } else {
+            bot.sendMessage(chatId, 'Неправильный ход, попробуй снова');
+        }
+    }
+});
+
+function isValidMove(row, col) {
+    return gameBoard[row][col] === ' . ';
+}
+
+function checkWin() {
+    for (let i = 0; i < 3; i++) {
+        if (gameBoard[i][0] === currentPlayer && gameBoard[i][1] === currentPlayer && gameBoard[i][2] === currentPlayer) {
+            return true;
+        }
+        if (gameBoard[0][i] === currentPlayer && gameBoard[1][i] === currentPlayer && gameBoard[2][i] === currentPlayer) {
+            return true;
+        }
+    }
+    if (gameBoard[0][0] === currentPlayer && gameBoard[1][1] === currentPlayer && gameBoard[2][2] === currentPlayer) {
+        return true;
+    }
+    if (gameBoard[0][2] === currentPlayer && gameBoard[1][1] === currentPlayer && gameBoard[2][0] === currentPlayer) {
+        return true;
+    }
+    return false;
+}
+
+function checkDraw() {
+    for (let i = 0; i < 3; i++) {
+        for (let j = 0; j < 3; j++) {
+            if (gameBoard[i][j] === ' . ') {
+                return false;
+            }
+        }
+    }
+    return true;
+}
+
+function getGameBoardAsString() {
+    let str = '';
+    for (let i = 0; i < 3; i++) {
+        for (let j = 0; j < 3; j++) {
+            str += gameBoard[i][j] + ' ';
+        }
+        str += '\n';
+    }
+    return str;
+}
+
 
 const startGame = async (chatId) =>{
     await bot.sendMessage(chatId, 'Сейчас я загадаю число от 0 до 9, а ты должен будешь его отгадать');
@@ -22,15 +108,16 @@ const start = () =>{
         { command: '/start', description: 'Начальное приветствие'},
         { command: '/info', description: 'Информация о вас'},
         { command: '/game', description: 'Игра -_-'},
-         { command: '/reset', description: 'Очистить переписку'}
-     ])
+        { command: '/reset', description: 'Очистить переписку'},
+        { command: '/gamestart', description: 'Крестики нолики'}
+    ])
     bot.on('message', async msg =>{
         const text = msg.text;
         const chatId = msg.chat.id;
         // const messages = await bot.getChatHistory(chatId);
         if(text.toLowerCase() === 'привет' || text.toLowerCase() === '/start'){
-           await bot.sendMessage(chatId, `Привет ${msg.from.first_name}`);
-           return bot.sendSticker(chatId, 'https://tgrm.su/img/stickers/wheretocum/2.webp');
+            await bot.sendMessage(chatId, `Привет ${msg.from.first_name}`);
+            return bot.sendSticker(chatId, 'https://tgrm.su/img/stickers/wheretocum/2.webp');
         }
         if(text.toLowerCase() === '/info'){
             return bot.sendMessage(chatId, `Вы : ${msg.from.first_name} ${msg.from.username}`);
@@ -38,6 +125,11 @@ const start = () =>{
         if(text.toLowerCase() === '/game'){
             return startGame(chatId);
         }   
+        if(text.toLowerCase() === '/gamestart'){
+            const chatId = msg.chat.id;
+            resetGame();
+            return bot.sendMessage(chatId, 'Давай поиграем в крестики-нолики:\n' + getGameBoardAsString());
+        }
         //  if(text.toLowerCase() === '/reset'){
         //     message.forEach(async (message) => {
         //         await bot.deleteMessage(chatId, message.message_id);
@@ -58,10 +150,10 @@ bot.on('callback_query', async msg =>{
         return startGame(chatId);
     }
     if(Number(data) === chats[chatId]){
-         await bot.sendMessage(chatId, `Поздравляем, вы выиграли, я загадал число ${chats[chatId]}`, againOptions)
-        return await bot.sendMessage(chatId, 'https://chpic.su/_data/stickers/h/Hamster_StickerMixUA/Hamster_StickerMixUA_001.webp')
+        await bot.sendMessage(chatId, `Поздравляем, вы выиграли, я загадал число ${chats[chatId]}`, againOptions)
+        return await bot.sendMessage(chatId, 'https://tgrm.su/img/stickers/chto_gde_kogda/1.webp')
     }else{
-         await bot.sendMessage(chatId, `Поздравляем, вы проиграли, я загадал число ${chats[chatId]}`, againOptions)
-        return await bot.sendMessage(chatId, 'https://chpic.su/_data/stickers/h/Hamster_StickerMixUA/Hamster_StickerMixUA_001.webp')
+        await bot.sendMessage(chatId, `Поздравляем, вы проиграли, я загадал число ${chats[chatId]}`, againOptions)
+        return await bot.sendMessage(chatId, 'https://tgrm.su/img/stickers/shblokun/6.webp')
     }
 })
