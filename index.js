@@ -1,8 +1,15 @@
 //44A5EF6B429D4694FD53408E2D28F5A1
+// import { Text2ImageAPI } from './kand.js';
+
+const fs = require("fs")
 
 const ticTacToe = require('./ticTacToe.js');
 
 const numbers = require('./numbers.js');
+
+const Text2ImageAPI = require('./kand.js');
+// const kand = require('./kand.js');
+// const kand =  import('./kand.js');
 
 const TelelegramApi = require('node-telegram-bot-api')
 
@@ -41,19 +48,20 @@ const start = () =>{
             return bot.sendMessage(chatId, `Это пока не работает`);
         }
         if(text.toLowerCase() === '/weather'){
-            const chat_id = '5520539019'
-            // Отправка сообщения с запросом на нажатие кнопки
-            // bot.onText(/\/pressbutton/, (msg) => {
-            //     bot.sendMessage(chat_id, 'Нажмите на кнопку', {
-            //     reply_markup: {
-            //         inline_keyboard: [
-            //         [{ text: 'Генерация изображения', callback_data: 'generate_image' }]
-            //         ]
-            //     }
-            //     });
-            // });
-            bot.sendMessage(chat_id, 'Привет чмо')
-            return bot.sendMessage(chatId, `тест`);
+            (async () => {
+                const api = new Text2ImageAPI('https://api-key.fusionbrain.ai/', '8A9F802F384D45DB5BD74C83DEE93604', '44A5EF6B429D4694FD53408E2D28F5A1');
+                const modelId = await api.getModels();
+                const uuid = await api.generate("sorry broy",modelId,1,1024,1024,1);
+                const images = await api.checkGeneration(uuid);
+                const base64String = images[0];
+                const base64Data = base64String.replace(/^data:image\/\w+;base64,/,'');
+                const buffer = Buffer.from(base64Data,'base64');
+                fs.writeFile('image.jpg', buffer, 'base64', (err) => {
+                    if(err) throw err;
+                    console.log('Файл сохранён!');
+                });
+            })(); 
+            return bot.sendMessage(chatId, `Это пока не работает`);
         }
         console.log(msg)        
     })
