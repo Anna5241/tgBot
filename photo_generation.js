@@ -1,4 +1,8 @@
+module.exports = {
+    generate_photo,
+};
 
+const fs = require("fs")
 
 const axios = require("axios");
 const FormData = require("form-data");
@@ -63,6 +67,41 @@ class Text2ImageAPI{
         }
     }
 }
-module.exports = Text2ImageAPI;
-
-
+//module.exports = Text2ImageAPI;
+function generate_photo(chatId, bot){
+    bot.sendMessage(chatId, `Введите запрос`);
+        bot.on('message', (msg) => {
+        bot.sendMessage(chatId, 'Подожди секунд 30, бот работает медленно(');        
+        const text = msg.text;
+        console.log(text);
+        (async () => {
+            const api = new Text2ImageAPI('https://api-key.fusionbrain.ai/', '8A9F802F384D45DB5BD74C83DEE93604', '44A5EF6B429D4694FD53408E2D28F5A1');
+            const modelId = await api.getModels();
+            const uuid = await api.generate(text, modelId, 1, 1024, 1024, 1);
+            const images = await api.checkGeneration(uuid);
+            const base64String = images[0];
+            const base64Data = base64String.replace(/^data:image\/\w+;base64,/, '');
+            const buffer = Buffer.from(base64Data, 'base64');
+                
+            fs.writeFile('image.jpg', buffer, 'base64', (err) => {
+                if (err) {
+                    throw err;
+                }
+                console.log('Файл сохранён!');                   
+                const photoPath = "C:/Users/xffaw/Desktop/tgBot/image.jpg";
+                bot.sendPhoto(chatId, fs.createReadStream(photoPath))
+                    .then((sent) => {
+                        console.log('Фотография успешно отправлена');
+                        return setTimeout(() => { bot.sendMessage(chatId,`Можешь попросить нарисовать еще что-нибудь)`); }, 1000);
+                        //return bot.sendMessage(chatId, `Это пока работает`);
+                    })
+                    .catch((error) => {
+                        console.error('Ошибка при отправке фотографии:', error);
+                    });
+                    
+                    
+                });
+            })(); 
+                
+        }); 
+}

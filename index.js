@@ -1,13 +1,17 @@
-//44A5EF6B429D4694FD53408E2D28F5A1
+//44A5EF6B429D4694FD53408E2D28F5A1 - Kadinsky
+//3b7e0d15-4e38-4995-8fe0-193c53b9b495 - погода
+//сделать кнопки для стилей
 // import { Text2ImageAPI } from './kand.js';
 
-const fs = require("fs")
+
 
 const ticTacToe = require('./ticTacToe.js');
 
 const numbers = require('./numbers.js');
 
-const Text2ImageAPI = require('./kand.js');
+const photo_generation = require('./photo_generation.js');
+
+//const Text2ImageAPI = require('./photo_generation.js');
 // const kand = require('./kand.js');
 // const kand =  import('./kand.js');
 
@@ -26,7 +30,7 @@ const start = () =>{
         { command: '/numbers', description: 'Казино'},
         { command: '/reset', description: 'Очистить переписку'},
         { command: '/tic_tac_toe', description: 'Крестики нолики'},
-        { command: '/weather', description: 'Погода'}
+        { command: '/photo_generation', description: 'Генератор фотографий'}
     ])
     bot.on('message', async msg =>{
         const text = msg.text;
@@ -48,45 +52,8 @@ const start = () =>{
         if(text.toLowerCase() === '/reset'){
             return bot.sendMessage(chatId, `Это пока не работает`);
         }
-        if(text.toLowerCase() === '/weather'){
-            bot.sendMessage(chatId, `Введите запрос`);
-            fileWrote = false;
-            bot.on('message', (msg) => {
-                const text = msg.text;
-                console.log(text);
-                (async () => {
-                    let fileWrote = false;
-                    const api = new Text2ImageAPI('https://api-key.fusionbrain.ai/', '8A9F802F384D45DB5BD74C83DEE93604', '44A5EF6B429D4694FD53408E2D28F5A1');
-                    const modelId = await api.getModels();
-                    const uuid = await api.generate(text, modelId, 1, 1024, 1024, 1);
-                    const images = await api.checkGeneration(uuid);
-                    const base64String = images[0];
-                    const base64Data = base64String.replace(/^data:image\/\w+;base64,/, '');
-                    const buffer = Buffer.from(base64Data, 'base64');
-                    
-                    fs.writeFile('image.jpg', buffer, 'base64', (err) => {
-                        if (err) {
-                            throw err;
-                        }
-                        console.log('Файл сохранён!');
-                        fileWrote = true;
-                
-                        if (fileWrote) {
-                            console.log("fileWrote");
-                            const photoPath = "C:/Users/xffaw/Desktop/tgBot/image.jpg";
-                            bot.sendPhoto(chatId, fs.createReadStream(photoPath))
-                                .then((sent) => {
-                                    console.log('Фотография успешно отправлена');
-                                })
-                                .catch((error) => {
-                                    console.error('Ошибка при отправке фотографии:', error);
-                                });
-                                return bot.sendMessage(chatId, `Это пока работает`);
-                        }
-                    });
-                })(); 
-                
-            }); 
+        if(text.toLowerCase() === '/photo_generation'){
+            return photo_generation.generate_photo(chatId, bot);
             
         }
         console.log(msg)        
