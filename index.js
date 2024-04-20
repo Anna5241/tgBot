@@ -1,19 +1,11 @@
 //44A5EF6B429D4694FD53408E2D28F5A1 - Kadinsky
 //3b7e0d15-4e38-4995-8fe0-193c53b9b495 - погода
-//сделать кнопки для стилей
-// import { Text2ImageAPI } from './kand.js';
-
-
 
 const ticTacToe = require('./ticTacToe.js');
 
 const numbers = require('./numbers.js');
 
 const photo_generation = require('./photo_generation.js');
-
-//const Text2ImageAPI = require('./photo_generation.js');
-// const kand = require('./kand.js');
-// const kand =  import('./kand.js');
 
 const TelelegramApi = require('node-telegram-bot-api')
 
