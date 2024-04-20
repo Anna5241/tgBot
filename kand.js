@@ -1,7 +1,7 @@
 
 
- const axios = require("axios");
- const FormData = require("form-data");
+const axios = require("axios");
+const FormData = require("form-data");
 
 
 
@@ -9,13 +9,13 @@ class Text2ImageAPI{
     constructor(url, apiKey, secretKey){
         this.URL = url;
         this.AUTH_HEADERS = {
-            'X-Key': 'Key ${apiKey}',
-            'X-Secret': 'Secret ${secretKey}'
+            'X-Key': `Key ${apiKey}`,
+            'X-Secret': `Secret ${secretKey}`
         };
     }
 
     async getModels(){
-        const response = await axios.get('${this.URL}key/api/v1/models', {headers: this.AUTH_HEADERS});
+        const response = await axios.get(`${this.URL}key/api/v1/models`, {headers: this.AUTH_HEADERS});
         return response.data[0].id;
     }
 
@@ -36,8 +36,8 @@ class Text2ImageAPI{
         const paramsData = {value: JSON.stringify(params),options: {contentType: 'application/json'}};
         formData.append('model_id', modelIdData.value, modelIdData.optoins);
         formData.append('params', paramsData.value, paramsData.options);
-          
-        const response = await axios.post('${this.URL}key/api/v1/text2image/run', formData,{
+        
+        const response = await axios.post(`${this.URL}key/api/v1/text2image/run`, formData,{
             headers: {
                 ...formData.getHeaders(),
                 ...this.AUTH_HEADERS
@@ -48,9 +48,9 @@ class Text2ImageAPI{
         return data.uuid;
     };
     async checkGeneration(requestId, attempts = 10, delay = 10){
-        while(attemps > 0){
+        while(attempts > 0){
             try{
-                const response = await axios.get('${this.URL}key/api/v1/text2image/status/${requestId}', {headers: this.AUTH_HEADERS});
+                const response = await axios.get(`${this.URL}key/api/v1/text2image/status/${requestId}`, {headers: this.AUTH_HEADERS});
                 const data = response.data;
                 if(data.status === 'DONE'){
                     return data.images;
