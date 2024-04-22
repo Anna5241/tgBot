@@ -136,7 +136,7 @@ async function generate_photo(msg, bot){
             style = await get_style(bot, chatId);
             chats[chatId].style = style;
             console.log(style)
-            await bot.sendMessage(chatId, 'Подожди секунд 30, бот работает медленно('); 
+            //await bot.sendMessage(chatId, 'Подожди секунд 30, бот работает медленно('); 
             await bot.sendMessage(chatId, 'Wait 30 seconds, the bot is running slowly('); 
             const api = new Text2ImageAPI('https://api-key.fusionbrain.ai/', '8A9F802F384D45DB5BD74C83DEE93604', '44A5EF6B429D4694FD53408E2D28F5A1');
             const modelId = await api.getModels();
