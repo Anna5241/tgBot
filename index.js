@@ -45,7 +45,7 @@ const start = () =>{
             return bot.sendMessage(chatId, `Это пока не работает`);
         }
         if(text.toLowerCase() === '/photo_generation'){
-            return photo_generation.generate_photo(chatId, bot);
+            return photo_generation.generate_photo(msg, bot);
             
         }
         console.log(msg)        

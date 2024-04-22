@@ -2,6 +2,15 @@ module.exports = {
     generate_photo,
 };
 
+let chats = {
+        request: 'value1',
+        style: 'value2',
+        image: '3'
+    // request: null,
+    // style: null,
+    // image: null
+};
+
 const {Styles} = require('./styles')
 
 const fs = require("fs")
@@ -40,14 +49,18 @@ class Text2ImageAPI{
         const paramsData = {value: JSON.stringify(params),options: {contentType: 'application/json'}};
         formData.append('model_id', modelIdData.value, modelIdData.optoins);
         formData.append('params', paramsData.value, paramsData.options);
+        console.log("1")
         const response = await axios.post(`${this.URL}key/api/v1/text2image/run`, formData,{
             headers: {
                 ...formData.getHeaders(),
                 ...this.AUTH_HEADERS
+                
             },
             'Content-Type': 'multipart/form-data'
         });
+        console.log("2")
         const data = response.data;
+        console.log("3")
         return data.uuid;
     };
 
@@ -55,7 +68,9 @@ class Text2ImageAPI{
         while(attempts > 0){
             try{
                 const response = await axios.get(`${this.URL}key/api/v1/text2image/status/${requestId}`, {headers: this.AUTH_HEADERS});
+                console.log(attempts);
                 const data = response.data;
+                console.log(data.status);
                 if(data.status === 'DONE'){
                     return data.images;
                 }
@@ -69,19 +84,63 @@ class Text2ImageAPI{
     
 }
 
-function  generate_photo(chatId, bot){
-    bot.sendMessage(chatId, `Введите запрос`);
-    bot.on('message', (msg) => { 
+class Request{
+    constructor(request = null, style = null, image = null){
+        this.style = style;
+        this.request = request;
+        this.image = image;
+    }
+}
+
+async function generate_photo(msg, bot){
+    chatId = msg.chat.id;
+   // let getResponse = false;
+    //bot.sendMessage(chatId, `Введите запрос`);
+    await bot.sendMessage(chatId, `Enter a request`);
+    
+    // await waitForResponse()
+    // .then((response) => {
+    //     console.log(response);
+    //     console.log("jhv");
+    //     getResponse = true;
+    // })
+    // .catch((error) => {
+    //     console.log(error);
+    // });
+
+    // if(!getResponse){
+    //     return await bot.sendMessage(chatId, `Вы не ввели запрос начните заново`);
+    // }
+
+
+    bot.on('message', async (msg) => { 
         const text = msg.text;
         console.log(text);
-    
+        chatId = msg.chat.id;
+        if (!chats[chatId]) {
+            chats[chatId] = {
+                request: null,
+                style: null
+            };
+        }
+        chats[chatId].request = text;
+        
         (async () => {
-            const style = await get_style(bot, chatId);
+            let styleGot = false;
+            let style;
+            
+            // if(!styleGot){
+            //     style = await get_style(bot, chatId);
+            //     styleGot = true;
+            // }
+            style = await get_style(bot, chatId);
+            chats[chatId].style = style;
             console.log(style)
-            await bot.sendMessage(chatId, 'Подожди секунд 30, бот работает медленно(');  
+            //await bot.sendMessage(chatId, 'Подожди секунд 30, бот работает медленно('); 
+            await bot.sendMessage(chatId, 'Wait 30 seconds, the bot is running slowly('); 
             const api = new Text2ImageAPI('https://api-key.fusionbrain.ai/', '8A9F802F384D45DB5BD74C83DEE93604', '44A5EF6B429D4694FD53408E2D28F5A1');
             const modelId = await api.getModels();
-            const uuid = await api.generate(text, modelId, 1, 1024, 1024, style);
+            const uuid = await api.generate(chats[chatId].request, modelId, 1, 1024, 1024, chats[chatId].style);
             const images = await api.checkGeneration(uuid);
             const base64String = images[0];
             const base64Data = base64String.replace(/^data:image\/\w+;base64,/, '');
@@ -91,17 +150,23 @@ function  generate_photo(chatId, bot){
                 if (err) {
                     throw err;
                 }
+                
                 console.log('Файл сохранён!');                   
-                const photoPath = "C:/Users/миша/OneDrive/Рабочий стол/tgBot/tgBot/image.jpg";
-                bot.sendPhoto(chatId, fs.createReadStream(photoPath))
+                const photoPath = "C:/Users/xffaw/Desktop/tgBot/image.jpg";
+                    const photo = fs.createReadStream(photoPath)
+                    chats[chatId].image = photo;
+                    bot.sendPhoto(chatId, chats[chatId].image)
                     .then((sent) => {
                         console.log('Фотография успешно отправлена');
-                        return setTimeout(() => { bot.sendMessage(chatId,`Можешь попросить нарисовать еще что-нибудь)`); }, 1000);
+                        //return setTimeout(() => { bot.sendMessage(chatId,`Можешь попросить нарисовать еще что-нибудь)`); }, 1000);
                         //return bot.sendMessage(chatId, `Это пока работает`);
+                        setTimeout(() => { return bot.sendMessage(chatId,`You can ask me to draw something else)`); }, 1000);
                     })
                     .catch((error) => {
                         console.error('Ошибка при отправке фотографии:', error);
                     });
+                
+                
                     
                         
                 });
@@ -109,10 +174,12 @@ function  generate_photo(chatId, bot){
                     
         }); 
 }
+
 function get_style(bot, chatId) {
     return new Promise((resolve, reject) => {
         start(chatId, bot);
-
+        console.log("style")
+        //bot.sendMessage(chatId, 'Выбираем стиль');  
         bot.on('callback_query', async msg => {
             const data = msg.data;
             let style = null;
@@ -131,8 +198,32 @@ function get_style(bot, chatId) {
 }
 
 const start = async (chatId, bot) =>{
-    await bot.sendMessage(chatId,'Выберите стиль', Styles);
+    //await bot.sendMessage(chatId,'Выберите стиль', Styles);
+    await bot.sendMessage(chatId,'Choose the style', Styles);
 }
+
+async function waitForResponse() {
+    return new Promise((resolve, reject) => {
+        let timer = setTimeout(() => {
+            clearTimeout(timer);
+            //reject("Время ожидания ответа истекло.");
+        }, 60000); // Ожидание 5 секунд
+
+        // Проверка наличия ответа
+        function checkResponse() {
+            if (userInput !== '' || userInput !== null) {
+                clearTimeout(timer);
+                resolve("Ответ получен.");
+            } else {
+                setTimeout(checkResponse, 1000); // Проверять каждую секунду
+            }
+        }
+
+        checkResponse();
+    });
+}
+
+// Вызов функции и ожидание ответа
 
 
 
