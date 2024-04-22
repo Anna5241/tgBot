@@ -94,78 +94,77 @@ const chats = {
 // image: null
 };
 
-async function handleMessage(msg, bot) {
-    const text = msg.text;
-    console.log(text);
-    chatId = msg.chat.id;
-    if (!chats[chatId]) {
-        chats[chatId] = {
-            request: null,
-            style: null
-        };
-    }
-    chats[chatId].request = text;
-    
-    (async () => {
-        let styleGot = false;
-        let style;
-        
-        // if(!styleGot){
-        //     style = await get_style(bot, chatId);
-        //     styleGot = true;
-        // }
-        style = await get_style(bot, chatId);
-        chats[chatId].style = style;
-        console.log(style)
-        //await bot.sendMessage(chatId, 'Подожди секунд 30, бот работает медленно('); 
-        await bot.sendMessage(chatId, 'Wait 30 seconds, the bot is running slowly('); 
-        const api = new Text2ImageAPI('https://api-key.fusionbrain.ai/', '8A9F802F384D45DB5BD74C83DEE93604', '44A5EF6B429D4694FD53408E2D28F5A1');
-        const modelId = await api.getModels();
-        const uuid = await api.generate(chats[chatId].request, modelId, 1, 1024, 1024, chats[chatId].style);
-        const images = await api.checkGeneration(uuid);
-        const base64String = images[0];
-        const base64Data = base64String.replace(/^data:image\/\w+;base64,/, '');
-        const buffer = Buffer.from(base64Data, 'base64');
-                
-        fs.writeFile('image.jpg', buffer, 'base64', (err) => {
-            if (err) {
-                throw err;
-            }
-            
-            console.log('Файл сохранён!');                   
-            const photoPath = "C:/Users/xffaw/Desktop/tgBot/image.jpg";
-                const photo = fs.createReadStream(photoPath)
-                chats[chatId].image = photo;
-                bot.sendPhoto(chatId, chats[chatId].image)
-                .then((sent) => {
-                    console.log('Фотография успешно отправлена');
-                    //return setTimeout(() => { bot.sendMessage(chatId,`Можешь попросить нарисовать еще что-нибудь)`); }, 1000);
-                    //return bot.sendMessage(chatId, `Это пока работает`);
-                    setTimeout(() => { return bot.sendMessage(chatId,`You can ask me to draw something else)`); }, 1000);
-                })
-                .catch((error) => {
-                    console.error('Ошибка при отправке фотографии:', error);
-                });
-            
-            
-                
-                    
-            });
-        })(); 
-    bot.removeListener('message', handleMessage);
-}
+
 
 async function generate_photo(msg, bot){
     chatId = msg.chat.id;
     //bot.sendMessage(chatId, `Введите запрос`);
     await bot.sendMessage(chatId, `Enter a request`);
+    async function handleMessage() {
+        const text = msg.text;
+        console.log(text);
+        chatId = msg.chat.id;
+        if (!chats[chatId]) {
+            chats[chatId] = {
+                request: null,
+                style: null
+            };
+        }
+        chats[chatId].request = text;
+        
+        //(async () => {
+            let style;
+            style = await get_style(bot, chatId);
+            chats[chatId].style = style;
+            console.log(style)
+            //await bot.sendMessage(chatId, 'Подожди секунд 30, бот работает медленно('); 
+            await bot.sendMessage(chatId, 'Wait 30 seconds, the bot is running slowly('); 
+            const api = new Text2ImageAPI('https://api-key.fusionbrain.ai/', '8A9F802F384D45DB5BD74C83DEE93604', '44A5EF6B429D4694FD53408E2D28F5A1');
+            const modelId = await api.getModels();
+            const uuid = await api.generate(chats[chatId].request, modelId, 1, 1024, 1024, chats[chatId].style);
+            const images = await api.checkGeneration(uuid);
+            const base64String = images[0];
+            const base64Data = base64String.replace(/^data:image\/\w+;base64,/, '');
+            const buffer = Buffer.from(base64Data, 'base64');
+                    
+            fs.writeFile('image.jpg', buffer, 'base64', (err) => {
+                if (err) {
+                    throw err;
+                }
+                
+                console.log('Файл сохранён!');                   
+                const photoPath = "C:/Users/xffaw/Desktop/tgBot/image.jpg";
+                    const photo = fs.createReadStream(photoPath)
+                    chats[chatId].image = photo;
+                    bot.sendPhoto(chatId, chats[chatId].image)
+                    .then((sent) => {
+                        console.log('Фотография успешно отправлена');
+                        //return setTimeout(() => { bot.sendMessage(chatId,`Можешь попросить нарисовать еще что-нибудь)`); }, 1000);
+                        //return bot.sendMessage(chatId, `Это пока работает`);
+                        setTimeout(() => { return bot.sendMessage(chatId,`You can ask me to draw something else)`); }, 1000);
+                    })
+                    .catch((error) => {
+                        console.error('Ошибка при отправке фотографии:', error);
+                    });
+                
+                
+                    
+                        
+                });
+            //})(); 
+            bot.removeListener('message', handleMessage);
+    }
+
+    bot.on('message', handleMessage);
     
     
 
-    bot.on('message', (message) => {
-        handleMessage(message, bot);
-    })
-    //bot.on('message', handleMessage);
+    // bot.on('message', (message) => {
+    //     handleMessage(message, bot);
+    // })
+    // bot.on('message', (message) => {
+    //     handleMessage(msg, bot);
+    // });
     
 }
 
