@@ -39,14 +39,12 @@ const start = () =>{
         }   
         if(text.toLowerCase() === '/tic_tac_toe'){
             return ticTacToe.playTicTacToe(chatId, bot)
-
         }
         if(text.toLowerCase() === '/reset'){
             return bot.sendMessage(chatId, `Это пока не работает`);
         }
         if(text.toLowerCase() === '/photo_generation'){
-            return await photo_generation.generate_photo(msg, bot);
-            
+            return await photo_generation.generate_photo(chatId, bot);
         }
         console.log(msg)        
     })
